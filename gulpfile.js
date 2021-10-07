@@ -32,7 +32,7 @@ const task = {
       )
       .pipe(
         header(
-          '/*! <%= pkg.realname %>-v<%= pkg.version %> <%= pkg.description %> <%= pkg.license %> License */\n ;',
+          '/*! <%= pkg.name %>-v<%= pkg.version %> <%= pkg.description %> <%= pkg.license %> License */\n ;',
           { pkg }
         )
       )
