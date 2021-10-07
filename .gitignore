@@ -1,6 +1,5 @@
-1.8.5/
 *.iml
-.idea/
+.idea
 .ipr
 .iws
 *~
@@ -10,14 +9,10 @@
 *.bak
 .DS_Store
 Thumbs.db
-.svn/
+.svn
 *.swp
 .nojekyll
 .project
-.settings/
-node_modules/
-_site/
+.settings
+node_modules
 .npmignore
-release/
-skin/moon/
-src/skin/moon/
