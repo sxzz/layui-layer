@@ -2,17 +2,16 @@
  layer 构建
 */
 
-var pkg = require('./package.json')
+const gulp = require('gulp')
+const uglify = require('gulp-uglify')
+const minify = require('gulp-minify-css')
+const rename = require('gulp-rename')
+const header = require('gulp-header')
+const del = require('del')
+const pkg = require('./package.json')
 
-var gulp = require('gulp')
-var uglify = require('gulp-uglify')
-var minify = require('gulp-minify-css')
-var rename = require('gulp-rename')
-var header = require('gulp-header')
-var del = require('del')
-
-var task = {
-  layer: function () {
+const task = {
+  layer() {
     gulp
       .src('./src/**/*.css')
       .pipe(
@@ -34,12 +33,12 @@ var task = {
       .pipe(
         header(
           '/*! <%= pkg.realname %>-v<%= pkg.version %> <%= pkg.description %> <%= pkg.license %> License */\n ;',
-          { pkg: pkg }
+          { pkg }
         )
       )
       .pipe(gulp.dest('./dist'))
   },
-  mobile: function () {
+  mobile() {
     return gulp
       .src('./src/mobile/layer.js')
       .pipe(
@@ -52,17 +51,17 @@ var task = {
       .pipe(
         header(
           '/*! <%= pkg.realname %> mobile-v<%= pkg.mobile %> <%= pkg.description %> <%= pkg.license %> License */\n ;',
-          { pkg: pkg }
+          { pkg }
         )
       )
       .pipe(gulp.dest('./dist/mobile'))
   },
-  other: function () {
+  other() {
     gulp.src('./src/**/*.{png,gif}').pipe(rename({})).pipe(gulp.dest('./dist'))
   },
 }
 
-gulp.task('clear', function (cb) {
+gulp.task('clear', (cb) => {
   //清理
   return del(['./dist/*'], cb)
 })
@@ -71,25 +70,32 @@ gulp.task('mobile', task.mincss) //压缩Mobile文件
 gulp.task('other', task.other) //移动一些配件
 
 //发行版本目录
-var releaseDir = './release/zip/layer-v' + pkg.version
-var release = releaseDir + '/layer'
+const releaseDir = `./release/zip/layer-v${pkg.version}`
+const release = `${releaseDir}/layer`
 
 //打包发行版
-gulp.task('clearZip', function (cb) {
+gulp.task('clearZip', (cb) => {
   //清理
   return del([releaseDir], cb)
 })
-gulp.task('r', ['clearZip'], function () {
-  gulp.src('./release/doc/**/*').pipe(gulp.dest(releaseDir))
+gulp.task(
+  'r',
+  gulp.series('clearZip', () => {
+    gulp.src('./release/doc/**/*').pipe(gulp.dest(releaseDir))
 
-  return gulp
-    .src(['./dist/**/*', '!./dist/**/moon', '!./dist/**/moon/*'])
-    .pipe(gulp.dest(release))
-})
+    return gulp
+      .src(['./dist/**/*', '!./dist/**/moon', '!./dist/**/moon/*'])
+      .pipe(gulp.dest(release))
+  })
+)
 
 //全部
-gulp.task('default', ['clear'], function () {
-  for (var key in task) {
-    task[key]()
-  }
-})
+gulp.task(
+  'default',
+  gulp.series('clear', (done) => {
+    for (const subTask of Object.values(task)) {
+      subTask()
+    }
+    done()
+  })
+)

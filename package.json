@@ -31,7 +31,7 @@
     "del": "^2.2.2",
     "eslint": "^7.32.0",
     "eslint-define-config": "^1.1.1",
-    "gulp": "^3.9.0",
+    "gulp": "^4.0.2",
     "gulp-header": "^1.8.8",
     "gulp-minify-css": "^1.2.4",
     "gulp-rename": "^1.2.2",
