@@ -1,11 +1,12 @@
+'use strict'
+
 /*!
  * layer - 通用 Web 弹出层组件
  * MIT Licensed
  */
 
 const jQuery = require('jquery')
-
-;('use strict')
+require('./theme/default/layer.css')
 
 var isLayui = window.layui && layui.define,
   $,
