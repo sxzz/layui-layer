@@ -23,7 +23,6 @@ html #layuicss-layer {
   left: 0;
   width: 100%;
   height: 100%;
-  _height: expression(document.body.offsetHeight + 'px');
 }
 .layui-layer {
   -webkit-overflow-scrolling: touch;
@@ -754,7 +753,6 @@ html #layuicss-layer {
   height: 44px;
   margin-top: -22px;
   outline: none;
-  blr: expression(this.onFocus=this.blur());
 }
 .layui-layer-imgprev {
   left: 30px;
