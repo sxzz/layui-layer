@@ -1,4 +1,4 @@
-declare namespace layer {
+declare module 'layer' {
   type Index = number
   type Selector = string
 
