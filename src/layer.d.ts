@@ -1,4 +1,4 @@
-declare module 'layer' {
+declare module '@sxzz/layui-layer' {
   type Index = number
   type Selector = string
 
