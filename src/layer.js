@@ -1,25 +1,23 @@
-'use strict'
-
 /*!
  * layer - 通用 Web 弹出层组件
  * MIT Licensed
  */
 
-const jQuery = require('jquery')
-require('./theme/default/layer.css')
+import jQuery from 'jquery'
+import './theme/layer.css'
 
 var isLayui = window.layui && layui.define,
   $,
   win,
   ready = {
     getPath: (function () {
-      var jsPath = document.currentScript
+      const jsPath = document.currentScript
           ? document.currentScript.src
           : (function () {
-              var js = document.scripts,
+              let js = document.scripts,
                 last = js.length - 1,
                 src
-              for (var i = last; i > 0; i--) {
+              for (let i = last; i > 0; i--) {
                 if (js[i].readyState === 'interactive') {
                   src = js[i].src
                   break
@@ -29,7 +27,8 @@ var isLayui = window.layui && layui.define,
             })(),
         GLOBAL = window.LAYUI_GLOBAL || {}
       return (
-        GLOBAL.layer_dir || jsPath.substring(0, jsPath.lastIndexOf('/') + 1)
+        GLOBAL.layer_dir ||
+        jsPath.slice(0, Math.max(0, jsPath.lastIndexOf('/') + 1))
       )
     })(),
 
@@ -43,8 +42,8 @@ var isLayui = window.layui && layui.define,
     type: ['dialog', 'page', 'iframe', 'loading', 'tips'],
 
     //获取节点的style属性值
-    getStyle: function (node, name) {
-      var style = node.currentStyle
+    getStyle(node, name) {
+      const style = node.currentStyle
         ? node.currentStyle
         : window.getComputedStyle(node, null)
       return style[
@@ -53,17 +52,17 @@ var isLayui = window.layui && layui.define,
     },
 
     //载入 CSS 依赖
-    link: function (href, fn, cssname) {
+    link(href, fn, cssname) {
       //未设置路径，则不主动加载css
       if (!layer.path) return
 
-      var head = document.getElementsByTagName('head')[0],
+      const head = document.querySelectorAll('head')[0],
         link = document.createElement('link')
 
       if (typeof fn === 'string') cssname = fn
 
-      var app = (cssname || href).replace(/\.|\//g, '')
-      var id = 'layuicss-' + app,
+      const app = (cssname || href).replace(/\.|\//g, '')
+      let id = `layuicss-${app}`,
         STAUTS_NAME = 'creating',
         timeout = 0
 
@@ -72,21 +71,21 @@ var isLayui = window.layui && layui.define,
       link.id = id
 
       if (!document.getElementById(id)) {
-        head.appendChild(link)
+        head.append(link)
       }
 
       if (typeof fn !== 'function') return //轮询 css 是否加载完毕
       ;(function poll(status) {
-        var delay = 100,
+        const delay = 100,
           getLinkElem = document.getElementById(id) //获取动态插入的 link 元素
 
         //如果轮询超过指定秒数，则视为请求文件失败或 css 文件不符合规范
         if (++timeout > (10 * 1000) / delay) {
-          return window.console && console.error(app + '.css: Invalid')
+          return window.console && console.error(`${app}.css: Invalid`)
         }
 
         //css 加载就绪
-        if (parseInt(ready.getStyle(getLinkElem, 'width')) === 1989) {
+        if (Number.parseInt(ready.getStyle(getLinkElem, 'width')) === 1989) {
           //如果参数来自于初始轮询（即未加载就绪时的），则移除 link 标签状态
           if (status === STAUTS_NAME) getLinkElem.removeAttribute('lay-status')
           //如果 link 标签的状态仍为「创建中」，则继续进入轮询，直到状态改变，则执行回调
@@ -95,7 +94,7 @@ var isLayui = window.layui && layui.define,
             : fn()
         } else {
           getLinkElem.setAttribute('lay-status', STAUTS_NAME)
-          setTimeout(function () {
+          setTimeout(() => {
             poll(STAUTS_NAME)
           }, delay)
         }
@@ -106,18 +105,18 @@ var isLayui = window.layui && layui.define,
   }
 
 //默认内置方法。
-var layer = {
+export const layer = {
   v: '3.5.1',
   ie: (function () {
     //ie版本
-    var agent = navigator.userAgent.toLowerCase()
+    const agent = navigator.userAgent.toLowerCase()
     return !!window.ActiveXObject || 'ActiveXObject' in window
       ? (agent.match(/msie\s(\d+)/) || [])[1] || '11' //由于ie11并没有msie的标识
       : false
   })(),
-  index: window.layer && window.layer.v ? 100000 : 0,
+  index: 0,
   path: ready.getPath,
-  config: function (options, fn) {
+  config(options, fn) {
     options = options || {}
     layer.cache = ready.config = $.extend({}, ready.config, options)
     layer.path = ready.config.path || layer.path
@@ -129,21 +128,19 @@ var layer = {
     if (!options.extend) return this
 
     isLayui
-      ? layui.addcss('modules/layer/' + options.extend)
-      : ready.link('theme/' + options.extend)
+      ? layui.addcss(`modules/layer/${options.extend}`)
+      : ready.link(`theme/${options.extend}`)
 
     return this
   },
 
   //主体CSS等待事件
-  ready: function (callback) {
-    var cssname = 'layer',
+  ready(callback) {
+    const cssname = 'layer',
       ver = '',
-      path =
-        (isLayui ? 'modules/layer/' : 'theme/') +
-        'default/layer.css?v=' +
-        layer.v +
-        ver
+      path = `${isLayui ? 'modules/layer/' : 'theme/'}default/layer.css?v=${
+        layer.v
+      }${ver}`
     isLayui
       ? layui.addcss(path, callback, cssname)
       : ready.link(path, callback, cssname)
@@ -151,22 +148,22 @@ var layer = {
   },
 
   //各种快捷引用
-  alert: function (content, options, yes) {
-    var type = typeof options === 'function'
+  alert(content, options, yes) {
+    const type = typeof options === 'function'
     if (type) yes = options
     return layer.open(
       $.extend(
         {
-          content: content,
-          yes: yes,
+          content,
+          yes,
         },
         type ? {} : options
       )
     )
   },
 
-  confirm: function (content, options, yes, cancel) {
-    var type = typeof options === 'function'
+  confirm(content, options, yes, cancel) {
+    const type = typeof options === 'function'
     if (type) {
       cancel = yes
       yes = options
@@ -174,9 +171,9 @@ var layer = {
     return layer.open(
       $.extend(
         {
-          content: content,
+          content,
           btn: ready.btn,
-          yes: yes,
+          yes,
           btn2: cancel,
         },
         type ? {} : options
@@ -184,30 +181,30 @@ var layer = {
     )
   },
 
-  msg: function (content, options, end) {
+  msg(content, options, end) {
     //最常用提示层
-    var type = typeof options === 'function',
+    const type = typeof options === 'function',
       rskin = ready.config.skin
-    var skin = (rskin ? rskin + ' ' + rskin + '-msg' : '') || 'layui-layer-msg'
-    var anim = doms.anim.length - 1
+    const skin = (rskin ? `${rskin} ${rskin}-msg` : '') || 'layui-layer-msg'
+    const anim = doms.anim.length - 1
     if (type) end = options
     return layer.open(
       $.extend(
         {
-          content: content,
+          content,
           time: 3000,
           shade: false,
-          skin: skin,
+          skin,
           title: false,
           closeBtn: false,
           btn: false,
           resize: false,
-          end: end,
+          end,
         },
         type && !ready.config.skin
           ? {
-              skin: skin + ' layui-layer-hui',
-              anim: anim,
+              skin: `${skin} layui-layer-hui`,
+              anim,
             }
           : (function () {
               options = options || {}
@@ -215,7 +212,7 @@ var layer = {
                 options.icon === -1 ||
                 (options.icon === undefined && !ready.config.skin)
               ) {
-                options.skin = skin + ' ' + (options.skin || 'layui-layer-hui')
+                options.skin = `${skin} ${options.skin || 'layui-layer-hui'}`
               }
               return options
             })()
@@ -223,7 +220,7 @@ var layer = {
     )
   },
 
-  load: function (icon, options) {
+  load(icon, options) {
     return layer.open(
       $.extend(
         {
@@ -237,7 +234,7 @@ var layer = {
     )
   },
 
-  tips: function (content, follow, options) {
+  tips(content, follow, options) {
     return layer.open(
       $.extend(
         {
@@ -256,8 +253,8 @@ var layer = {
   },
 }
 
-var Class = function (setings) {
-  var that = this,
+const Class = function (setings) {
+  const that = this,
     creat = function () {
       that.creat()
     }
@@ -266,7 +263,7 @@ var Class = function (setings) {
   that.config = $.extend({}, that.config, ready.config, setings)
   document.body
     ? creat()
-    : setTimeout(function () {
+    : setTimeout(() => {
         creat()
       }, 30)
 }
@@ -322,18 +319,16 @@ Class.pt.config = {
 
 //容器
 Class.pt.vessel = function (conType, callback) {
-  var that = this,
+  const that = this,
     times = that.index,
     config = that.config
-  var zIndex = config.zIndex + times,
+  const zIndex = config.zIndex + times,
     titype = typeof config.title === 'object'
-  var ismax = config.maxmin && (config.type === 1 || config.type === 2)
-  var titleHTML = config.title
-    ? '<div class="layui-layer-title" style="' +
-      (titype ? config.title[1] : '') +
-      '">' +
-      (titype ? config.title[0] : config.title) +
-      '</div>'
+  const ismax = config.maxmin && (config.type === 1 || config.type === 2)
+  const titleHTML = config.title
+    ? `<div class="layui-layer-title" style="${
+        titype ? config.title[1] : ''
+      }">${titype ? config.title[0] : config.title}</div>`
     : ''
 
   config.zIndex = zIndex
@@ -341,105 +336,59 @@ Class.pt.vessel = function (conType, callback) {
     [
       //遮罩
       config.shade
-        ? '<div class="' +
-          doms.SHADE +
-          '" id="' +
-          doms.SHADE +
-          times +
-          '" times="' +
-          times +
-          '" style="' +
-          ('z-index:' + (zIndex - 1) + '; ') +
-          '"></div>'
+        ? `<div class="${doms.SHADE}" id="${doms.SHADE}${times}" times="${times}" style="` +
+          `z-index:${zIndex - 1}; ` +
+          `"></div>`
         : '',
 
       //主体
-      '<div class="' +
-        doms[0] +
-        (' layui-layer-' + ready.type[config.type]) +
-        ((config.type == 0 || config.type == 2) && !config.shade
+      `<div class="${doms[0]} layui-layer-${ready.type[config.type]}${
+        (config.type == 0 || config.type == 2) && !config.shade
           ? ' layui-layer-border'
-          : '') +
-        ' ' +
-        (config.skin || '') +
-        '" id="' +
-        doms[0] +
-        times +
-        '" type="' +
-        ready.type[config.type] +
-        '" times="' +
-        times +
-        '" showtime="' +
-        config.time +
-        '" conType="' +
-        (conType ? 'object' : 'string') +
-        '" style="z-index: ' +
-        zIndex +
-        '; width:' +
-        config.area[0] +
-        ';height:' +
-        config.area[1] +
-        ';position:' +
-        (config.fixed ? 'fixed;' : 'absolute;') +
-        '">' +
-        (conType && config.type != 2 ? '' : titleHTML) +
-        '<div id="' +
-        (config.id || '') +
-        '" class="layui-layer-content' +
-        (config.type == 0 && config.icon !== -1 ? ' layui-layer-padding' : '') +
-        (config.type == 3 ? ' layui-layer-loading' + config.icon : '') +
-        '">' +
-        (config.type == 0 && config.icon !== -1
-          ? '<i class="layui-layer-ico layui-layer-ico' + config.icon + '"></i>'
-          : '') +
-        (config.type == 1 && conType ? '' : config.content || '') +
-        '</div>' +
-        '<span class="layui-layer-setwin">' +
-        (function () {
-          var closebtn = ismax
+          : ''
+      } ${config.skin || ''}" id="${doms[0]}${times}" type="${
+        ready.type[config.type]
+      }" times="${times}" showtime="${config.time}" conType="${
+        conType ? 'object' : 'string'
+      }" style="z-index: ${zIndex}; width:${config.area[0]};height:${
+        config.area[1]
+      };position:${config.fixed ? 'fixed;' : 'absolute;'}">${
+        conType && config.type != 2 ? '' : titleHTML
+      }<div id="${config.id || ''}" class="layui-layer-content${
+        config.type == 0 && config.icon !== -1 ? ' layui-layer-padding' : ''
+      }${config.type == 3 ? ` layui-layer-loading${config.icon}` : ''}">${
+        config.type == 0 && config.icon !== -1
+          ? `<i class="layui-layer-ico layui-layer-ico${config.icon}"></i>`
+          : ''
+      }${config.type == 1 && conType ? '' : config.content || ''}</div>` +
+        `<span class="layui-layer-setwin">${(function () {
+          let closebtn = ismax
             ? '<a class="layui-layer-min" href="javascript:;"><cite></cite></a><a class="layui-layer-ico layui-layer-max" href="javascript:;"></a>'
             : ''
           config.closeBtn &&
-            (closebtn +=
-              '<a class="layui-layer-ico ' +
-              doms[7] +
-              ' ' +
-              doms[7] +
-              (config.title ? config.closeBtn : config.type == 4 ? '1' : '2') +
-              '" href="javascript:;"></a>')
+            (closebtn += `<a class="layui-layer-ico ${doms[7]} ${doms[7]}${
+              config.title ? config.closeBtn : config.type == 4 ? '1' : '2'
+            }" href="javascript:;"></a>`)
           return closebtn
-        })() +
-        '</span>' +
-        (config.btn
-          ? (function () {
-              var button = ''
-              typeof config.btn === 'string' && (config.btn = [config.btn])
-              for (var i = 0, len = config.btn.length; i < len; i++) {
-                button +=
-                  '<a class="' +
-                  doms[6] +
-                  '' +
-                  i +
-                  '">' +
-                  config.btn[i] +
-                  '</a>'
-              }
-              return (
-                '<div class="' +
-                doms[6] +
-                ' layui-layer-btn-' +
-                (config.btnAlign || '') +
-                '">' +
-                button +
-                '</div>'
-              )
-            })()
-          : '') +
-        (config.resize ? '<span class="layui-layer-resize"></span>' : '') +
-        '</div>',
+        })()}</span>${
+          config.btn
+            ? (function () {
+                let button = ''
+                typeof config.btn === 'string' && (config.btn = [config.btn])
+                for (let i = 0, len = config.btn.length; i < len; i++) {
+                  button += `<a class="${doms[6]}${i}">${config.btn[i]}</a>`
+                }
+                return `<div class="${doms[6]} layui-layer-btn-${
+                  config.btnAlign || ''
+                }">${button}</div>`
+              })()
+            : ''
+        }${
+          config.resize ? '<span class="layui-layer-resize"></span>' : ''
+        }</div>`,
     ],
     titleHTML,
-    $('<div class="' + doms.MOVE + '" id="' + doms.MOVE + '"></div>')
+    $(`<div class="${doms.MOVE}" id="${doms.MOVE}"></div>`)
   )
   return that
 }
@@ -454,7 +403,7 @@ Class.pt.creat = function () {
     conType = typeof content === 'object',
     body = $('body')
 
-  if (config.id && $('#' + config.id)[0]) return
+  if (config.id && $(`#${config.id}`)[0]) return
 
   if (typeof config.area === 'string') {
     config.area = config.area === 'auto' ? ['', ''] : [config.area, '']
@@ -478,20 +427,13 @@ Class.pt.creat = function () {
       var content = (config.content = conType
         ? config.content
         : [config.content || '', 'auto'])
-      config.content =
-        '<iframe scrolling="' +
-        (config.content[1] || 'auto') +
-        '" allowtransparency="true" id="' +
-        doms[4] +
-        '' +
-        times +
-        '" name="' +
-        doms[4] +
-        '' +
-        times +
-        '" onload="this.className=\'\';" class="layui-layer-load" frameborder="0" src="' +
-        config.content[0] +
-        '"></iframe>'
+      config.content = `<iframe scrolling="${
+        config.content[1] || 'auto'
+      }" allowtransparency="true" id="${doms[4]}${times}" name="${
+        doms[4]
+      }${times}" onload="this.className='';" class="layui-layer-load" frameborder="0" src="${
+        config.content[0]
+      }"></iframe>`
       break
     case 3:
       delete config.title
@@ -502,7 +444,7 @@ Class.pt.creat = function () {
     case 4:
       conType || (config.content = [config.content, 'body'])
       config.follow = config.content[1]
-      config.content = config.content[0] + '<i class="layui-layer-TipsG"></i>'
+      config.content = `${config.content[0]}<i class="layui-layer-TipsG"></i>`
       delete config.title
       config.tips =
         typeof config.tips === 'object' ? config.tips : [config.tips, true]
@@ -512,7 +454,7 @@ Class.pt.creat = function () {
 
   //建立容器
   that
-    .vessel(conType, function (html, titleHTML, moveElem) {
+    .vessel(conType, (html, titleHTML, moveElem) => {
       body.append(html[0])
       conType
         ? (function () {
@@ -521,23 +463,23 @@ Class.pt.creat = function () {
                   $('body').append(html[1])
                 })()
               : (function () {
-                  if (!content.parents('.' + doms[0])[0]) {
+                  if (!content.parents(`.${doms[0]}`)[0]) {
                     content
                       .data('display', content.css('display'))
                       .show()
                       .addClass('layui-layer-wrap')
                       .wrap(html[1])
-                    $('#' + doms[0] + times)
-                      .find('.' + doms[5])
+                    $(`#${doms[0]}${times}`)
+                      .find(`.${doms[5]}`)
                       .before(titleHTML)
                   }
                 })()
           })()
         : body.append(html[1])
-      $('#' + doms.MOVE)[0] || body.append((ready.moveElem = moveElem))
+      $(`#${doms.MOVE}`)[0] || body.append((ready.moveElem = moveElem))
 
-      that.layero = $('#' + doms[0] + times)
-      that.shadeo = $('#' + doms.SHADE + times)
+      that.layero = $(`#${doms[0]}${times}`)
+      that.shadeo = $(`#${doms.SHADE}${times}`)
 
       config.scrollbar ||
         doms.html.css('overflow', 'hidden').attr('layer-full', times)
@@ -560,12 +502,12 @@ Class.pt.creat = function () {
     : (function () {
         that.offset()
         //首次弹出时，若 css 尚未加载，则等待 css 加载完毕后，重新设定尺寸
-        parseInt(
+        Number.parseInt(
           ready.getStyle(document.getElementById(doms.MOVE), 'z-index')
         ) ||
           (function () {
             that.layero.css('visibility', 'hidden')
-            layer.ready(function () {
+            layer.ready(() => {
               that.offset()
               that.layero.css('visibility', 'visible')
             })
@@ -574,7 +516,7 @@ Class.pt.creat = function () {
 
   //如果是固定定位
   if (config.fixed) {
-    win.on('resize', function () {
+    win.on('resize', () => {
       that.offset()
       ;(/^\d+%$/.test(config.area[0]) || /^\d+%$/.test(config.area[1])) &&
         that.auto(times)
@@ -583,14 +525,14 @@ Class.pt.creat = function () {
   }
 
   config.time <= 0 ||
-    setTimeout(function () {
+    setTimeout(() => {
       layer.close(that.index)
     }, config.time)
   that.move().callback()
 
   //为兼容jQuery3.0的css动画影响元素尺寸计算
   if (doms.anim[config.anim]) {
-    var animClass = 'layer-anim ' + doms.anim[config.anim]
+    const animClass = `layer-anim ${doms.anim[config.anim]}`
     that.layero
       .addClass(animClass)
       .one(
@@ -609,9 +551,9 @@ Class.pt.creat = function () {
 
 //自适应
 Class.pt.auto = function (index) {
-  var that = this,
+  const that = this,
     config = that.config,
-    layero = $('#' + doms[0] + index)
+    layero = $(`#${doms[0]}${index}`)
 
   if (config.area[0] === '' && config.maxWidth > 0) {
     //为了修复IE7下一个让人难以理解的bug
@@ -621,16 +563,16 @@ Class.pt.auto = function (index) {
     layero.outerWidth() > config.maxWidth && layero.width(config.maxWidth)
   }
 
-  var area = [layero.innerWidth(), layero.innerHeight()],
+  const area = [layero.innerWidth(), layero.innerHeight()],
     titHeight = layero.find(doms[1]).outerHeight() || 0,
-    btnHeight = layero.find('.' + doms[6]).outerHeight() || 0,
+    btnHeight = layero.find(`.${doms[6]}`).outerHeight() || 0,
     setHeight = function (elem) {
       elem = layero.find(elem)
       elem.height(
         area[1] -
           titHeight -
           btnHeight -
-          2 * (parseFloat(elem.css('padding-top')) | 0)
+          2 * (Number.parseFloat(elem.css('padding-top')) | 0)
       )
     }
 
@@ -642,13 +584,13 @@ Class.pt.auto = function (index) {
       if (config.area[1] === '') {
         if (config.maxHeight > 0 && layero.outerHeight() > config.maxHeight) {
           area[1] = config.maxHeight
-          setHeight('.' + doms[5])
+          setHeight(`.${doms[5]}`)
         } else if (config.fixed && area[1] >= win.height()) {
           area[1] = win.height()
-          setHeight('.' + doms[5])
+          setHeight(`.${doms[5]}`)
         }
       } else {
-        setHeight('.' + doms[5])
+        setHeight(`.${doms[5]}`)
       }
       break
   }
@@ -658,11 +600,11 @@ Class.pt.auto = function (index) {
 
 //计算坐标
 Class.pt.offset = function () {
-  var that = this,
+  const that = this,
     config = that.config,
     layero = that.layero
-  var area = [layero.outerWidth(), layero.outerHeight()]
-  var type = typeof config.offset === 'object'
+  const area = [layero.outerWidth(), layero.outerHeight()]
+  const type = typeof config.offset === 'object'
   that.offsetTop = (win.height() - area[1]) / 2
   that.offsetLeft = (win.width() - area[0]) / 2
 
@@ -704,12 +646,12 @@ Class.pt.offset = function () {
   }
 
   if (!config.fixed) {
-    that.offsetTop = /%$/.test(that.offsetTop)
-      ? (win.height() * parseFloat(that.offsetTop)) / 100
-      : parseFloat(that.offsetTop)
-    that.offsetLeft = /%$/.test(that.offsetLeft)
-      ? (win.width() * parseFloat(that.offsetLeft)) / 100
-      : parseFloat(that.offsetLeft)
+    that.offsetTop = that.offsetTop.endsWith('%')
+      ? (win.height() * Number.parseFloat(that.offsetTop)) / 100
+      : Number.parseFloat(that.offsetTop)
+    that.offsetLeft = that.offsetLeft.endsWith('%')
+      ? (win.width() * Number.parseFloat(that.offsetLeft)) / 100
+      : Number.parseFloat(that.offsetLeft)
     that.offsetTop += win.scrollTop()
     that.offsetLeft += win.scrollLeft()
   }
@@ -724,13 +666,13 @@ Class.pt.offset = function () {
 
 //Tips
 Class.pt.tips = function () {
-  var that = this,
+  const that = this,
     config = that.config,
     layero = that.layero
-  var layArea = [layero.outerWidth(), layero.outerHeight()],
+  let layArea = [layero.outerWidth(), layero.outerHeight()],
     follow = $(config.follow)
   if (!follow[0]) follow = $('body')
-  var goal = {
+  const goal = {
       width: follow.outerWidth(),
       height: follow.outerHeight(),
       top: follow.offset().top,
@@ -738,7 +680,7 @@ Class.pt.tips = function () {
     },
     tipsG = layero.find('.layui-layer-TipsG')
 
-  var guide = config.tips[0]
+  const guide = config.tips[0]
   config.tips[1] || tipsG.remove()
 
   goal.autoLeft = function () {
@@ -809,7 +751,7 @@ Class.pt.tips = function () {
     layArea[0] + 8 * 2 - goal.left > 0 && goal.where[1]()
   }
 
-  layero.find('.' + doms[5]).css({
+  layero.find(`.${doms[5]}`).css({
     'background-color': config.tips[1],
     'padding-right': config.closeBtn ? '30px' : '',
   })
@@ -821,7 +763,7 @@ Class.pt.tips = function () {
 
 //拖拽层
 Class.pt.move = function () {
-  var that = this,
+  const that = this,
     config = that.config,
     _DOC = $(document),
     layero = that.layero,
@@ -833,19 +775,19 @@ Class.pt.move = function () {
     moveElem.css('cursor', 'move')
   }
 
-  moveElem.on('mousedown', function (e) {
+  moveElem.on('mousedown', (e) => {
     e.preventDefault()
     if (config.move) {
       dict.moveStart = true
       dict.offset = [
-        e.clientX - parseFloat(layero.css('left')),
-        e.clientY - parseFloat(layero.css('top')),
+        e.clientX - Number.parseFloat(layero.css('left')),
+        e.clientY - Number.parseFloat(layero.css('top')),
       ]
       ready.moveElem.css('cursor', 'move').show()
     }
   })
 
-  resizeElem.on('mousedown', function (e) {
+  resizeElem.on('mousedown', (e) => {
     e.preventDefault()
     dict.resizeStart = true
     dict.offset = [e.clientX, e.clientY]
@@ -854,7 +796,7 @@ Class.pt.move = function () {
   })
 
   _DOC
-    .on('mousemove', function (e) {
+    .on('mousemove', (e) => {
       //拖拽移动
       if (dict.moveStart) {
         var X = e.clientX - dict.offset[0],
@@ -868,7 +810,7 @@ Class.pt.move = function () {
 
         //控制元素不被拖出窗口外
         if (!config.moveOut) {
-          var setRig = win.width() - layero.outerWidth() + dict.stX,
+          const setRig = win.width() - layero.outerWidth() + dict.stX,
             setBot = win.height() - layero.outerHeight() + dict.stY
           X < dict.stX && (X = dict.stX)
           X > setRig && (X = setRig)
@@ -897,7 +839,7 @@ Class.pt.move = function () {
         config.resizing && config.resizing(layero)
       }
     })
-    .on('mouseup', function (e) {
+    .on('mouseup', (e) => {
       if (dict.moveStart) {
         delete dict.moveStart
         ready.moveElem.hide()
@@ -913,13 +855,13 @@ Class.pt.move = function () {
 }
 
 Class.pt.callback = function () {
-  var that = this,
+  const that = this,
     layero = that.layero,
     config = that.config
   that.openLayer()
   if (config.success) {
     if (config.type == 2) {
-      layero.find('iframe').on('load', function () {
+      layero.find('iframe').on('load', () => {
         config.success(layero, that.index)
       })
     } else {
@@ -930,10 +872,10 @@ Class.pt.callback = function () {
 
   //按钮
   layero
-    .find('.' + doms[6])
+    .find(`.${doms[6]}`)
     .children('a')
     .on('click', function () {
-      var index = $(this).index()
+      const index = $(this).index()
       if (index === 0) {
         if (config.yes) {
           config.yes(that.index, layero)
@@ -943,32 +885,32 @@ Class.pt.callback = function () {
           layer.close(that.index)
         }
       } else {
-        var close =
-          config['btn' + (index + 1)] &&
-          config['btn' + (index + 1)](that.index, layero)
+        const close =
+          config[`btn${index + 1}`] &&
+          config[`btn${index + 1}`](that.index, layero)
         close === false || layer.close(that.index)
       }
     })
 
   //取消
   function cancel() {
-    var close = config.cancel && config.cancel(that.index, layero)
+    const close = config.cancel && config.cancel(that.index, layero)
     close === false || layer.close(that.index)
   }
 
   //右上角关闭回调
-  layero.find('.' + doms[7]).on('click', cancel)
+  layero.find(`.${doms[7]}`).on('click', cancel)
 
   //点遮罩关闭
   if (config.shadeClose) {
-    that.shadeo.on('click', function () {
+    that.shadeo.on('click', () => {
       layer.close(that.index)
     })
   }
 
   //最小化
-  layero.find('.layui-layer-min').on('click', function () {
-    var min = config.min && config.min(layero, that.index)
+  layero.find('.layui-layer-min').on('click', () => {
+    const min = config.min && config.min(layero, that.index)
     min === false || layer.min(that.index, config)
   })
 
@@ -979,7 +921,7 @@ Class.pt.callback = function () {
       config.restore && config.restore(layero, that.index)
     } else {
       layer.full(that.index, config)
-      setTimeout(function () {
+      setTimeout(() => {
         config.full && config.full(layero, that.index)
       }, 100)
     }
@@ -991,10 +933,10 @@ Class.pt.callback = function () {
 //for ie6 恢复select
 ready.reselect = function () {
   $.each($('select'), function (index, value) {
-    var sthis = $(this)
-    if (!sthis.parents('.' + doms[0])[0]) {
+    let sthis = $(this)
+    if (!sthis.parents(`.${doms[0]}`)[0]) {
       sthis.attr('layer') == 1 &&
-        $('.' + doms[0]).length < 1 &&
+        $(`.${doms[0]}`).length === 0 &&
         sthis.removeAttr('layer').show()
     }
     sthis = null
@@ -1004,8 +946,8 @@ ready.reselect = function () {
 Class.pt.IE6 = function (layero) {
   //隐藏select
   $('select').each(function (index, value) {
-    var sthis = $(this)
-    if (!sthis.parents('.' + doms[0])[0]) {
+    let sthis = $(this)
+    if (!sthis.parents(`.${doms[0]}`)[0]) {
       sthis.css('display') === 'none' || sthis.attr({ layer: '1' }).hide()
     }
     sthis = null
@@ -1014,16 +956,16 @@ Class.pt.IE6 = function (layero) {
 
 //需依赖原型的对外方法
 Class.pt.openLayer = function () {
-  var that = this
+  const that = this
 
   //置顶当前窗口
   layer.zIndex = that.config.zIndex
   layer.setTop = function (layero) {
-    var setZindex = function () {
+    const setZindex = function () {
       layer.zIndex++
       layero.css('z-index', layer.zIndex + 1)
     }
-    layer.zIndex = parseInt(layero[0].style.zIndex)
+    layer.zIndex = Number.parseInt(layero[0].style.zIndex)
     layero.on('mousedown', setZindex)
     return layer.zIndex
   }
@@ -1031,14 +973,14 @@ Class.pt.openLayer = function () {
 
 //记录宽高坐标，用于还原
 ready.record = function (layero) {
-  var area = [
+  const area = [
     layero.width(),
     layero.height(),
     layero.position().top,
-    layero.position().left + parseFloat(layero.css('margin-left')),
+    layero.position().left + Number.parseFloat(layero.css('margin-left')),
   ]
   layero.find('.layui-layer-max').addClass('layui-layer-maxmin')
-  layero.attr({ area: area })
+  layero.attr({ area })
 }
 
 ready.rescollbar = function (index) {
@@ -1054,49 +996,40 @@ ready.rescollbar = function (index) {
 
 /** 内置成员 */
 
-window.layer = layer
-
 //获取子iframe的DOM
 layer.getChildFrame = function (selector, index) {
-  index = index || $('.' + doms[4]).attr('times')
-  return $('#' + doms[0] + index)
-    .find('iframe')
-    .contents()
-    .find(selector)
+  index = index || $(`.${doms[4]}`).attr('times')
+  return $(`#${doms[0]}${index}`).find('iframe').contents().find(selector)
 }
 
 //得到当前iframe层的索引，子iframe时使用
 layer.getFrameIndex = function (name) {
-  return $('#' + name)
-    .parents('.' + doms[4])
-    .attr('times')
+  return $(`#${name}`).parents(`.${doms[4]}`).attr('times')
 }
 
 //iframe层自适应宽高
 layer.iframeAuto = function (index) {
   if (!index) return
-  var heg = layer.getChildFrame('html', index).outerHeight()
-  var layero = $('#' + doms[0] + index)
-  var titHeight = layero.find(doms[1]).outerHeight() || 0
-  var btnHeight = layero.find('.' + doms[6]).outerHeight() || 0
+  const heg = layer.getChildFrame('html', index).outerHeight()
+  const layero = $(`#${doms[0]}${index}`)
+  const titHeight = layero.find(doms[1]).outerHeight() || 0
+  const btnHeight = layero.find(`.${doms[6]}`).outerHeight() || 0
   layero.css({ height: heg + titHeight + btnHeight })
   layero.find('iframe').css({ height: heg })
 }
 
 //重置iframe url
 layer.iframeSrc = function (index, url) {
-  $('#' + doms[0] + index)
-    .find('iframe')
-    .attr('src', url)
+  $(`#${doms[0]}${index}`).find('iframe').attr('src', url)
 }
 
 //设定层的样式
 layer.style = function (index, options, limit) {
-  var layero = $('#' + doms[0] + index),
+  let layero = $(`#${doms[0]}${index}`),
     contElem = layero.find('.layui-layer-content'),
     type = layero.attr('type'),
     titHeight = layero.find(doms[1]).outerHeight() || 0,
-    btnHeight = layero.find('.' + doms[6]).outerHeight() || 0,
+    btnHeight = layero.find(`.${doms[6]}`).outerHeight() || 0,
     minLeft = layero.attr('minLeft')
 
   if (type === ready.type[3] || type === ready.type[4]) {
@@ -1104,30 +1037,30 @@ layer.style = function (index, options, limit) {
   }
 
   if (!limit) {
-    if (parseFloat(options.width) <= 260) {
+    if (Number.parseFloat(options.width) <= 260) {
       options.width = 260
     }
 
-    if (parseFloat(options.height) - titHeight - btnHeight <= 64) {
+    if (Number.parseFloat(options.height) - titHeight - btnHeight <= 64) {
       options.height = 64 + titHeight + btnHeight
     }
   }
 
   layero.css(options)
-  btnHeight = layero.find('.' + doms[6]).outerHeight()
+  btnHeight = layero.find(`.${doms[6]}`).outerHeight()
 
   if (type === ready.type[2]) {
     layero.find('iframe').css({
-      height: parseFloat(options.height) - titHeight - btnHeight,
+      height: Number.parseFloat(options.height) - titHeight - btnHeight,
     })
   } else {
     contElem.css({
       height:
-        parseFloat(options.height) -
+        Number.parseFloat(options.height) -
         titHeight -
         btnHeight -
-        parseFloat(contElem.css('padding-top')) -
-        parseFloat(contElem.css('padding-bottom')),
+        Number.parseFloat(contElem.css('padding-top')) -
+        Number.parseFloat(contElem.css('padding-bottom')),
     })
   }
 }
@@ -1135,10 +1068,10 @@ layer.style = function (index, options, limit) {
 //最小化
 layer.min = function (index, options) {
   options = options || {}
-  var layero = $('#' + doms[0] + index),
-    shadeo = $('#' + doms.SHADE + index),
+  let layero = $(`#${doms[0]}${index}`),
+    shadeo = $(`#${doms.SHADE}${index}`),
     titHeight = layero.find(doms[1]).outerHeight() || 0,
-    left = layero.attr('minLeft') || 181 * ready.minIndex + 'px',
+    left = layero.attr('minLeft') || `${181 * ready.minIndex}px`,
     position = layero.css('position'),
     settings = {
       width: 180,
@@ -1176,8 +1109,8 @@ layer.min = function (index, options) {
 
 //还原
 layer.restore = function (index) {
-  var layero = $('#' + doms[0] + index),
-    shadeo = $('#' + doms.SHADE + index),
+  const layero = $(`#${doms[0]}${index}`),
+    shadeo = $(`#${doms.SHADE}${index}`),
     area = layero.attr('area').split(','),
     type = layero.attr('type')
 
@@ -1185,10 +1118,10 @@ layer.restore = function (index) {
   layer.style(
     index,
     {
-      width: parseFloat(area[0]),
-      height: parseFloat(area[1]),
-      top: parseFloat(area[2]),
-      left: parseFloat(area[3]),
+      width: Number.parseFloat(area[0]),
+      height: Number.parseFloat(area[1]),
+      top: Number.parseFloat(area[2]),
+      left: Number.parseFloat(area[3]),
       position: layero.attr('position'),
       overflow: 'visible',
     },
@@ -1206,15 +1139,15 @@ layer.restore = function (index) {
 
 //全屏
 layer.full = function (index) {
-  var layero = $('#' + doms[0] + index),
+  let layero = $(`#${doms[0]}${index}`),
     timer
   ready.record(layero)
   if (!doms.html.attr('layer-full')) {
     doms.html.css('overflow', 'hidden').attr('layer-full', index)
   }
   clearTimeout(timer)
-  timer = setTimeout(function () {
-    var isfix = layero.css('position') === 'fixed'
+  timer = setTimeout(() => {
+    const isfix = layero.css('position') === 'fixed'
     layer.style(
       index,
       {
@@ -1231,22 +1164,22 @@ layer.full = function (index) {
 
 //改变title
 layer.title = function (name, index) {
-  var title = $('#' + doms[0] + (index || layer.index)).find(doms[1])
+  const title = $(`#${doms[0]}${index || layer.index}`).find(doms[1])
   title.html(name)
 }
 
 //关闭layer总方法
 layer.close = function (index, callback) {
-  var layero = $('#' + doms[0] + index),
+  const layero = $(`#${doms[0]}${index}`),
     type = layero.attr('type'),
     closeAnim = 'layer-anim-close'
   if (!layero[0]) return
-  var WRAP = 'layui-layer-wrap',
+  const WRAP = 'layui-layer-wrap',
     remove = function () {
       if (type === ready.type[1] && layero.attr('conType') === 'object') {
-        layero.children(':not(.' + doms[5] + ')').remove()
-        var wrap = layero.find('.' + WRAP)
-        for (var i = 0; i < 2; i++) {
+        layero.children(`:not(.${doms[5]})`).remove()
+        const wrap = layero.find(`.${WRAP}`)
+        for (let i = 0; i < 2; i++) {
           wrap.unwrap()
         }
         wrap.css('display', wrap.data('display')).removeClass(WRAP)
@@ -1254,11 +1187,11 @@ layer.close = function (index, callback) {
         //低版本IE 回收 iframe
         if (type === ready.type[2]) {
           try {
-            var iframe = $('#' + doms[4] + index)[0]
+            const iframe = $(`#${doms[4]}${index}`)[0]
             iframe.contentWindow.document.write('')
             iframe.contentWindow.close()
-            layero.find('.' + doms[5])[0].removeChild(iframe)
-          } catch (e) {}
+            layero.find(`.${doms[5]}`)[0].removeChild(iframe)
+          } catch {}
         }
         layero[0].innerHTML = ''
         layero.remove()
@@ -1269,10 +1202,10 @@ layer.close = function (index, callback) {
     }
 
   if (layero.data('isOutAnim')) {
-    layero.addClass('layer-anim ' + closeAnim)
+    layero.addClass(`layer-anim ${closeAnim}`)
   }
 
-  $('#layui-layer-moves, #' + doms.SHADE + index).remove()
+  $(`#layui-layer-moves, #${doms.SHADE}${index}`).remove()
   layer.ie == 6 && ready.reselect()
   ready.rescollbar(index)
   if (layero.attr('minLeft')) {
@@ -1283,7 +1216,7 @@ layer.close = function (index, callback) {
   if ((layer.ie && layer.ie < 10) || !layero.data('isOutAnim')) {
     remove()
   } else {
-    setTimeout(function () {
+    setTimeout(() => {
       remove()
     }, 200)
   }
@@ -1295,10 +1228,10 @@ layer.closeAll = function (type, callback) {
     callback = type
     type = null
   }
-  var domsElem = $('.' + doms[0])
+  const domsElem = $(`.${doms[0]}`)
   $.each(domsElem, function (_index) {
-    var othis = $(this)
-    var is = type ? othis.attr('type') === type : 1
+    const othis = $(this)
+    let is = type ? othis.attr('type') === type : 1
     is &&
       layer.close(
         othis.attr('times'),
@@ -1315,36 +1248,34 @@ layer.closeAll = function (type, callback) {
 
  */
 
-var cache = layer.cache || {},
+const cache = layer.cache || {},
   skin = function (type) {
-    return cache.skin ? ' ' + cache.skin + ' ' + cache.skin + '-' + type : ''
+    return cache.skin ? ` ${cache.skin} ${cache.skin}-${type}` : ''
   }
 
 //仿系统prompt
 layer.prompt = function (options, yes) {
-  var style = ''
+  let style = ''
   options = options || {}
 
   if (typeof options === 'function') yes = options
 
   if (options.area) {
-    var area = options.area
-    style = 'style="width: ' + area[0] + '; height: ' + area[1] + ';"'
+    const area = options.area
+    style = `style="width: ${area[0]}; height: ${area[1]};"`
     delete options.area
   }
-  var prompt,
+  let prompt,
     content =
       options.formType == 2
-        ? '<textarea class="layui-layer-input"' + style + '></textarea>'
+        ? `<textarea class="layui-layer-input"${style}></textarea>`
         : (function () {
-            return (
-              '<input type="' +
-              (options.formType == 1 ? 'password' : 'text') +
-              '" class="layui-layer-input">'
-            )
+            return `<input type="${
+              options.formType == 1 ? 'password' : 'text'
+            }" class="layui-layer-input">`
           })()
 
-  var success = options.success
+  const success = options.success
   delete options.success
 
   return layer.open(
@@ -1352,24 +1283,24 @@ layer.prompt = function (options, yes) {
       {
         type: 1,
         btn: ['&#x786E;&#x5B9A;', '&#x53D6;&#x6D88;'],
-        content: content,
-        skin: 'layui-layer-prompt' + skin('prompt'),
+        content,
+        skin: `layui-layer-prompt${skin('prompt')}`,
         maxWidth: win.width(),
-        success: function (layero) {
+        success(layero) {
           prompt = layero.find('.layui-layer-input')
           prompt.val(options.value || '').focus()
           typeof success === 'function' && success(layero)
         },
         resize: false,
-        yes: function (index) {
-          var value = prompt.val()
+        yes(index) {
+          const value = prompt.val()
           if (value === '') {
             prompt.focus()
           } else if (value.length > (options.maxlength || 500)) {
             layer.tips(
-              '&#x6700;&#x591A;&#x8F93;&#x5165;' +
-                (options.maxlength || 500) +
-                '&#x4E2A;&#x5B57;&#x6570;',
+              `&#x6700;&#x591A;&#x8F93;&#x5165;${
+                options.maxlength || 500
+              }&#x4E2A;&#x5B57;&#x6570;`,
               prompt,
               { tips: 1 }
             )
@@ -1387,7 +1318,7 @@ layer.prompt = function (options, yes) {
 layer.tab = function (options) {
   options = options || {}
 
-  var tab = options.tab || {},
+  const tab = options.tab || {},
     THIS = 'layui-this',
     success = options.success
 
@@ -1397,49 +1328,42 @@ layer.tab = function (options) {
     $.extend(
       {
         type: 1,
-        skin: 'layui-layer-tab' + skin('tab'),
+        skin: `layui-layer-tab${skin('tab')}`,
         resize: false,
         title: (function () {
-          var len = tab.length,
+          let len = tab.length,
             ii = 1,
             str = ''
           if (len > 0) {
-            str = '<span class="' + THIS + '">' + tab[0].title + '</span>'
+            str = `<span class="${THIS}">${tab[0].title}</span>`
             for (; ii < len; ii++) {
-              str += '<span>' + tab[ii].title + '</span>'
+              str += `<span>${tab[ii].title}</span>`
             }
           }
           return str
         })(),
-        content:
-          '<ul class="layui-layer-tabmain">' +
-          (function () {
-            var len = tab.length,
-              ii = 1,
-              str = ''
-            if (len > 0) {
-              str =
-                '<li class="layui-layer-tabli ' +
-                THIS +
-                '">' +
-                (tab[0].content || 'no content') +
-                '</li>'
-              for (; ii < len; ii++) {
-                str +=
-                  '<li class="layui-layer-tabli">' +
-                  (tab[ii].content || 'no  content') +
-                  '</li>'
-              }
+        content: `<ul class="layui-layer-tabmain">${(function () {
+          let len = tab.length,
+            ii = 1,
+            str = ''
+          if (len > 0) {
+            str = `<li class="layui-layer-tabli ${THIS}">${
+              tab[0].content || 'no content'
+            }</li>`
+            for (; ii < len; ii++) {
+              str += `<li class="layui-layer-tabli">${
+                tab[ii].content || 'no  content'
+              }</li>`
             }
-            return str
-          })() +
-          '</ul>',
-        success: function (layero) {
-          var btn = layero.find('.layui-layer-title').children()
-          var main = layero.find('.layui-layer-tabmain').children()
+          }
+          return str
+        })()}</ul>`,
+        success(layero) {
+          const btn = layero.find('.layui-layer-title').children()
+          const main = layero.find('.layui-layer-tabmain').children()
           btn.on('mousedown', function (e) {
             e.stopPropagation ? e.stopPropagation() : (e.cancelBubble = true)
-            var othis = $(this),
+            const othis = $(this),
               index = othis.index()
             othis.addClass(THIS).siblings().removeClass(THIS)
             main.eq(index).show().siblings().hide()
@@ -1455,12 +1379,12 @@ layer.tab = function (options) {
 
 //相册层
 layer.photos = function (options, loop, key) {
-  var dict = {}
+  const dict = {}
   options = options || {}
   if (!options.photos) return
 
   //若 photos 并非选择器或 jQuery 对象，则为普通 object
-  var isObject = !(
+  let isObject = !(
       typeof options.photos === 'string' || options.photos instanceof $
     ),
     photos = isObject ? options.photos : {},
@@ -1470,17 +1394,17 @@ layer.photos = function (options, loop, key) {
   dict.imgIndex = (start | 0) + 1
   options.img = options.img || 'img'
 
-  var success = options.success
+  const success = options.success
   delete options.success
 
   //如果 options.photos 不是一个对象
   if (!isObject) {
     //页面直接获取
-    var parent = $(options.photos),
+    const parent = $(options.photos),
       pushData = function () {
         data = []
         parent.find(options.img).each(function (index) {
-          var othis = $(this)
+          const othis = $(this)
           othis.attr('layer-index', index)
           data.push({
             alt: othis.attr('alt'),
@@ -1498,13 +1422,13 @@ layer.photos = function (options, loop, key) {
     loop ||
       parent.on('click', options.img, function () {
         pushData()
-        var othis = $(this),
+        const othis = $(this),
           index = othis.attr('layer-index')
         layer.photos(
           $.extend(options, {
             photos: {
               start: index,
-              data: data,
+              data,
               tab: options.tab,
             },
             full: options.full,
@@ -1543,7 +1467,7 @@ layer.photos = function (options, loop, key) {
   //方向键
   dict.keyup = function (event) {
     if (!dict.end) {
-      var code = event.keyCode
+      const code = event.keyCode
       event.preventDefault()
       if (code === 37) {
         dict.imgprev(true)
@@ -1561,7 +1485,7 @@ layer.photos = function (options, loop, key) {
     photos.start = dict.imgIndex - 1
     layer.close(dict.index)
     return layer.photos(options, true, key)
-    setTimeout(function () {
+    setTimeout(() => {
       layer.photos(options, true, key)
     }, 200)
   }
@@ -1576,12 +1500,12 @@ layer.photos = function (options, loop, key) {
     });
     */
 
-    dict.bigimg.find('.layui-layer-imgprev').on('click', function (event) {
+    dict.bigimg.find('.layui-layer-imgprev').on('click', (event) => {
       event.preventDefault()
       dict.imgprev(true)
     })
 
-    dict.bigimg.find('.layui-layer-imgnext').on('click', function (event) {
+    dict.bigimg.find('.layui-layer-imgnext').on('click', (event) => {
       event.preventDefault()
       dict.imgnext(true)
     })
@@ -1591,19 +1515,19 @@ layer.photos = function (options, loop, key) {
 
   //图片预加载
   function loadImage(url, callback, error) {
-    var img = new Image()
+    const img = new Image()
     img.src = url
     if (img.complete) {
       return callback(img)
     }
-    img.onload = function () {
+    img.addEventListener('load', () => {
       img.onload = null
       callback(img)
-    }
-    img.onerror = function (e) {
+    })
+    img.addEventListener('error', (e) => {
       img.onerror = null
       error(e)
-    }
+    })
   }
 
   dict.loadi = layer.load(1, {
@@ -1613,7 +1537,7 @@ layer.photos = function (options, loop, key) {
 
   loadImage(
     data[start].src,
-    function (img) {
+    (img) => {
       layer.close(dict.loadi)
 
       //切换图片时不出现动画
@@ -1626,15 +1550,18 @@ layer.photos = function (options, loop, key) {
             type: 1,
             id: 'layui-layer-photos',
             area: (function () {
-              var imgarea = [img.width, img.height]
-              var winarea = [$(window).width() - 100, $(window).height() - 100]
+              const imgarea = [img.width, img.height]
+              const winarea = [
+                $(window).width() - 100,
+                $(window).height() - 100,
+              ]
 
               //如果 实际图片的宽或者高比 屏幕大（那么进行缩放）
               if (
                 !options.full &&
                 (imgarea[0] > winarea[0] || imgarea[1] > winarea[1])
               ) {
-                var wh = [imgarea[0] / winarea[0], imgarea[1] / winarea[1]] //取宽度缩放比例、高度缩放比例
+                const wh = [imgarea[0] / winarea[0], imgarea[1] / winarea[1]] //取宽度缩放比例、高度缩放比例
                 if (wh[0] > wh[1]) {
                   //取缩放比例最大的进行缩放
                   imgarea[0] = imgarea[0] / wh[0]
@@ -1645,7 +1572,7 @@ layer.photos = function (options, loop, key) {
                 }
               }
 
-              return [imgarea[0] + 'px', imgarea[1] + 'px']
+              return [`${imgarea[0]}px`, `${imgarea[1]}px`]
             })(),
             title: false,
             shade: 0.9,
@@ -1657,44 +1584,37 @@ layer.photos = function (options, loop, key) {
             moveOut: true,
             anim: 5,
             isOutAnim: false,
-            skin: 'layui-layer-photos' + skin('photos'),
-            content:
-              '<div class="layui-layer-phimg">' +
-              '<img src="' +
-              data[start].src +
-              '" alt="' +
-              (data[start].alt || '') +
-              '" layer-pid="' +
-              data[start].pid +
-              '">' +
-              (function () {
-                if (data.length > 1) {
-                  return (
+            skin: `layui-layer-photos${skin('photos')}`,
+            content: `${'<div class="layui-layer-phimg">' + '<img src="'}${
+              data[start].src
+            }" alt="${data[start].alt || ''}" layer-pid="${
+              data[start].pid
+            }">${(function () {
+              if (data.length > 1) {
+                return (
+                  `${
                     '<div class="layui-layer-imgsee">' +
                     '<span class="layui-layer-imguide"><a href="javascript:;" class="layui-layer-iconext layui-layer-imgprev"></a><a href="javascript:;" class="layui-layer-iconext layui-layer-imgnext"></a></span>' +
-                    '<div class="layui-layer-imgbar" style="display:' +
-                    (key ? 'block' : '') +
-                    '"><span class="layui-layer-imgtit"><a href="javascript:;">' +
-                    (data[start].alt || '') +
-                    '</a><em>' +
-                    dict.imgIndex +
-                    ' / ' +
-                    data.length +
-                    '</em></span></div>' +
-                    '</div>'
-                  )
-                }
-                return ''
-              })() +
-              '</div>',
-            success: function (layero, index) {
+                    '<div class="layui-layer-imgbar" style="display:'
+                  }${
+                    key ? 'block' : ''
+                  }"><span class="layui-layer-imgtit"><a href="javascript:;">${
+                    data[start].alt || ''
+                  }</a><em>${dict.imgIndex} / ${
+                    data.length
+                  }</em></span></div>` + `</div>`
+                )
+              }
+              return ''
+            })()}</div>`,
+            success(layero, index) {
               dict.bigimg = layero.find('.layui-layer-phimg')
               dict.imgsee = layero.find('.layui-layer-imgbar')
               dict.event(layero)
               options.tab && options.tab(data[start], layero)
               typeof success === 'function' && success(layero)
             },
-            end: function () {
+            end() {
               dict.end = true
               $(document).off('keyup', dict.keyup)
             },
@@ -1703,14 +1623,14 @@ layer.photos = function (options, loop, key) {
         )
       )
     },
-    function () {
+    () => {
       layer.close(dict.loadi)
       layer.msg(
         '&#x5F53;&#x524D;&#x56FE;&#x7247;&#x5730;&#x5740;&#x5F02;&#x5E38;<br>&#x662F;&#x5426;&#x7EE7;&#x7EED;&#x67E5;&#x770B;&#x4E0B;&#x4E00;&#x5F20;&#xFF1F;',
         {
           time: 30000,
           btn: ['&#x4E0B;&#x4E00;&#x5F20;', '&#x4E0D;&#x770B;&#x4E86;'],
-          yes: function () {
+          yes() {
             data.length > 1 && dict.imgnext(true, true)
           },
         }
@@ -1725,7 +1645,7 @@ ready.run = function (_$) {
   win = $(window)
   doms.html = $('html')
   layer.open = function (deliver) {
-    var o = new Class(deliver)
+    const o = new Class(deliver)
     return o.index
   }
 }
