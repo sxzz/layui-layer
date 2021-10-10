@@ -18,7 +18,8 @@
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "layer.d.ts"
   ],
   "exports": {
     ".": {
